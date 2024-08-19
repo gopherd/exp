@@ -1,0 +1,14 @@
+*.swo
+*.swp
+~*
+.DS_Store
+.vs/
+.vscode/
+.idea/
+*.exe
+testdata/
+
+# go coverage files
+coverage.out
+coverage.txt
+coverage.html

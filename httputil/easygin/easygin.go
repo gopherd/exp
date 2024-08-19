@@ -1,6 +1,7 @@
 package easygin
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gopherd/core/types"
@@ -17,6 +18,8 @@ type Context interface {
 	JSON(statusCode int, resp any)
 	// Get retrieves the value of the given key from the context.
 	Get(key string) (any, bool)
+	// FullPath returns current API path
+	FullPath() string
 }
 
 // Router is an interface for registering API endpoints.
@@ -24,10 +27,10 @@ type Router[H ~func(C), C Context, R any] interface {
 	Handle(method, path string, handlers ...H) R
 }
 
-// JSON sends a JSON response with the result.
-// If the result is nil, it sends a response with empty data.
-// If the result is an error, it sends a response with error code and message.
-// Otherwise, it sends a response with the result.
+// JSON sends a JSON response with the data.
+// If the data is nil, it sends a response with empty data.
+// If the data is an error, it sends a response with error code and message.
+// Otherwise, it sends a response with the data.
 func JSON[C Context](ctx C, data any) {
 	ctx.JSON(http.StatusOK, httputil.Result(data))
 }
@@ -49,16 +52,23 @@ func WithValue[H ~func(C, T, V), C Context, T any, V httputil.Valuer](h H) func(
 	return func(ctx C) {
 		var req T
 		if err := ctx.Bind(&req); err != nil {
+			slog.Warn("failed to bind request", "error", err, "path", ctx.FullPath())
 			ctx.JSON(http.StatusBadRequest, types.Object{"error": err})
 			return
 		}
 		var zero V
-		v, ok := ctx.Get(zero.GetContextKey())
+		x, ok := ctx.Get(zero.GetContextKey())
 		if !ok {
+			slog.Error("context value not found", "path", ctx.FullPath())
 			ctx.JSON(http.StatusInternalServerError, types.Object{"error": "context value not found"})
 			return
 		}
-		h(ctx, req, v.(V))
+		if v, ok := x.(V); !ok {
+			slog.Error("unexpected type of context value", "path", ctx.FullPath())
+			ctx.JSON(http.StatusInternalServerError, types.Object{"error": "unexpected type of context value"})
+		} else {
+			h(ctx, req, v)
+		}
 	}
 }
 

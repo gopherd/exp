@@ -1,6 +1,7 @@
 package easyecho
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gopherd/core/types"
@@ -17,6 +18,8 @@ type Context interface {
 	JSON(statusCode int, resp any) error
 	// Get retrieves the value of the given key from the context.
 	Get(key string) any
+	// Path returns current API path
+	Path() string
 }
 
 // Router is an interface for registering API endpoints.
@@ -24,10 +27,10 @@ type Router[M ~func(H) H, H ~func(C) error, C Context, R any] interface {
 	Add(method, path string, handler H, middleware ...M) R
 }
 
-// JSON sends a JSON response with the result.
-// If the result is nil, it sends a response with empty data.
-// If the result is an error, it sends a response with error code and message.
-// Otherwise, it sends a response with the result.
+// JSON sends a JSON response with the data.
+// If the data is nil, it sends a response with empty data.
+// If the data is an error, it sends a response with error code and message.
+// Otherwise, it sends a response with the data.
 func JSON[C Context](ctx C, data any) error {
 	return ctx.JSON(http.StatusOK, httputil.Result(data))
 }
@@ -49,16 +52,22 @@ func WithValue[H ~func(C, T, V) error, C Context, T any, V httputil.Valuer](h H)
 	return func(ctx C) error {
 		var req T
 		if err := ctx.Bind(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, types.Object{"error": err})
-			return nil
+			slog.Warn("failed to bind request", "error", err, "path", ctx.Path())
+			return ctx.JSON(http.StatusBadRequest, types.Object{"error": err})
 		}
 		var zero V
-		v, ok := ctx.Get(zero.GetContextKey()).(V)
-		if !ok {
-			ctx.JSON(http.StatusInternalServerError, types.Object{"error": "context value not found"})
-			return nil
+		x := ctx.Get(zero.GetContextKey())
+		if x == nil {
+			slog.Error("context value not found", "path", ctx.Path())
+			return ctx.JSON(http.StatusInternalServerError, types.Object{"error": "context value not found"})
 		}
-		return h(ctx, req, v)
+		v, ok := x.(V)
+		if !ok {
+			slog.Error("unexpected type of context value", "path", ctx.Path())
+			return ctx.JSON(http.StatusInternalServerError, types.Object{"error": "unexpected type of context value"})
+		} else {
+			return h(ctx, req, v)
+		}
 	}
 }
 
