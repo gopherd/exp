@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/gopherd/core/encoding"
+	"github.com/gopherd/core/stringutil"
 	"gopkg.in/yaml.v3"
 )
 
@@ -150,6 +152,22 @@ type Options struct {
 	Namer func(scope, ext string) string
 }
 
+func snakeCaseNamer(scope, ext string) string {
+	return stringutil.SnakeCase(scope) + "." + ext
+}
+
+func kebabCaseNamer(scope, ext string) string {
+	return stringutil.KebabCase(scope) + "." + ext
+}
+
+func camelCaseNamer(scope, ext string) string {
+	return stringutil.CamelCase(scope) + "." + ext
+}
+
+func pascalCaseNamer(scope, ext string) string {
+	return stringutil.PascalCase(scope) + "." + ext
+}
+
 // Hub is the interface that wraps the basic operations of a configuration hub.
 type Hub interface {
 	// Parse parses the data into the hub.
@@ -163,8 +181,8 @@ type Config[H Hub] struct {
 	checksum string
 }
 
-// New creates a new configuration.
-func New[H Hub](new func() H) *Config[H] {
+// NewConfig creates a new configuration.
+func NewConfig[H Hub](new func() H) *Config[H] {
 	return &Config[H]{new: new}
 }
 
@@ -183,7 +201,7 @@ func (c *Config[H]) parse(data []byte, dec encoding.Decoder) error {
 }
 
 // Load loads the data by the given options.
-func (c *Config[H]) Load(options Options) (bool, error) {
+func (c *Config[H]) Load(ctx context.Context, options Options) (bool, error) {
 	options.Scopes = options.Scopes.Compact()
 	if len(options.Scopes) == 0 {
 		return false, nil
@@ -205,7 +223,7 @@ func (c *Config[H]) Load(options Options) (bool, error) {
 		return true, c.parse(data, dec)
 	}
 	if strings.HasPrefix(options.Source, "http://") || strings.HasPrefix(options.Source, "https://") {
-		return c.loadHTTP(options)
+		return c.loadHTTP(ctx, options)
 	}
 	if !strings.HasPrefix(options.Source, "file://") {
 		dir, err := filepath.Abs(options.Source)
@@ -251,13 +269,13 @@ func (c *Config[H]) loadDir(options Options) error {
 }
 
 // loadHTTP loads the data from the HTTP.
-func (c *Config[H]) loadHTTP(options Options) (bool, error) {
+func (c *Config[H]) loadHTTP(ctx context.Context, options Options) (bool, error) {
 	_, _, dec, err := options.ContentType.Parse()
 	if err != nil {
 		return false, err
 	}
 	checksum := c.checksum
-	newChecksum, data, err := fetch(checksum, options.Source, string(options.ContentType), options.Scopes)
+	newChecksum, data, err := fetch(ctx, checksum, options.Source, string(options.ContentType), options.Scopes)
 	if err != nil {
 		return false, err
 	}
@@ -271,8 +289,8 @@ func (c *Config[H]) loadHTTP(options Options) (bool, error) {
 	return true, nil
 }
 
-func fetch(checksum, url, contentType string, scopes Scopes) (newChecksum string, body []byte, err error) {
-	req, err := http.NewRequest(http.MethodGet, url, strings.NewReader(scopes.String()))
+func fetch(ctx context.Context, checksum, url, contentType string, scopes Scopes) (newChecksum string, body []byte, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, strings.NewReader(scopes.String()))
 	if err != nil {
 		return
 	}
