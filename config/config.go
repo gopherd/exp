@@ -39,8 +39,6 @@ var (
 
 // Table is the interface that wraps the basic operations of a table.
 type Table interface {
-	// Parse parses the data into the table.
-	Parse(data []byte, decoder encoding.Decoder) error
 	// Scan scans the table rows with the given offset and limit.
 	Scan(offset, limit int, desc bool) (rows []any, total int, err error)
 	// Insert inserts a new row into the table.
