@@ -46,8 +46,6 @@ type Row interface {
 type Table interface {
 	// Parse parses the data into the table.
 	Parse(data []byte, decoder encoding.Decoder) error
-	// Lookup looks up the row with the given id.
-	Lookup(id string) (row Row, err error)
 	// Scan scans the table rows with the given offset and limit.
 	Scan(offset, limit int, desc bool) (rows []Row, total int, err error)
 	// Insert inserts a new row into the table.
