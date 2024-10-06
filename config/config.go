@@ -37,19 +37,14 @@ var (
 	ErrOperationNotAllowed = errors.New("operation not allowed")
 )
 
-// Row is the type of a row in the table.
-type Row interface {
-	GetID() string
-}
-
 // Table is the interface that wraps the basic operations of a table.
 type Table interface {
 	// Parse parses the data into the table.
 	Parse(data []byte, decoder encoding.Decoder) error
 	// Scan scans the table rows with the given offset and limit.
-	Scan(offset, limit int, desc bool) (rows []Row, total int, err error)
+	Scan(offset, limit int, desc bool) (rows []any, total int, err error)
 	// Insert inserts a new row into the table.
-	Insert(rowContent string) (row Row, err error)
+	Insert(rowContent string) (id string, err error)
 	// Update updates the row with the given id.
 	Update(id string, content string) error
 	// Delete deletes the row with the given id.
