@@ -48,7 +48,7 @@ func BindRequest[H ~func(C, T) error, C Context, T any](h H) func(C) error {
 }
 
 // WithValue wraps the handler with context parameter.
-func WithValue[H ~func(C, T, V) error, C Context, T any, V httputil.Valuer](h H) func(C) error {
+func WithValue[H ~func(C, T, V) error, C Context, T any, V httputil.ContextValuer](h H) func(C) error {
 	return func(ctx C) error {
 		var req T
 		if err := ctx.Bind(&req); err != nil {
@@ -77,7 +77,7 @@ func Connect[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T
 }
 
 // Connect2 adds a CONNECT route to the router with context value parameter.
-func Connect2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Connect2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodConnect, path, WithValue(f), m...)
 }
 
@@ -87,7 +87,7 @@ func Delete[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T 
 }
 
 // Delete2 adds a DELETE route to the router with context value parameter.
-func Delete2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Delete2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodDelete, path, WithValue(f), m...)
 }
 
@@ -97,7 +97,7 @@ func Get[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T any
 }
 
 // Get2 adds a GET route to the router with context value parameter.
-func Get2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Get2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodGet, path, WithValue(f), m...)
 }
 
@@ -107,7 +107,7 @@ func Head[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T an
 }
 
 // Head2 adds a HEAD route to the router with context value parameter.
-func Head2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Head2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodHead, path, WithValue(f), m...)
 }
 
@@ -117,7 +117,7 @@ func Options[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T
 }
 
 // Options2 adds a OPTIONS route to the router with context value parameter.
-func Options2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Options2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodOptions, path, WithValue(f), m...)
 }
 
@@ -127,7 +127,7 @@ func Patch[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T a
 }
 
 // Patch2 adds a PATCH route to the router with context value parameter.
-func Patch2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Patch2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodPatch, path, WithValue(f), m...)
 }
 
@@ -137,7 +137,7 @@ func Post[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T an
 }
 
 // Post2 adds a POST route to the router with context value parameter.
-func Post2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Post2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodPost, path, WithValue(f), m...)
 }
 
@@ -147,7 +147,7 @@ func Put[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T any
 }
 
 // Put2 adds a PUT route to the router with context value parameter.
-func Put2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Put2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodPut, path, WithValue(f), m...)
 }
 
@@ -157,7 +157,7 @@ func Trace[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T a
 }
 
 // Trace2 adds a TRACE route to the router with context value parameter.
-func Trace2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], path string, f F, m ...M) {
+func Trace2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], path string, f F, m ...M) {
 	router.Add(http.MethodTrace, path, WithValue(f), m...)
 }
 
@@ -170,7 +170,7 @@ func Match[F func(C, T) error, M ~func(H) H, H ~func(C) error, C Context, R, T a
 }
 
 // Match2 adds multiple routes to the router with context value parameter.
-func Match2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.Valuer](router Router[M, H, C, R], methods []string, path string, f F, m ...M) {
+func Match2[F func(C, T, V) error, M ~func(H) H, H ~func(C) error, C Context, R, T any, V httputil.ContextValuer](router Router[M, H, C, R], methods []string, path string, f F, m ...M) {
 	h := WithValue(f)
 	for _, method := range methods {
 		router.Add(method, path, h, m...)

@@ -55,13 +55,26 @@ type ValueSetter interface {
 	Set(key string, value any)
 }
 
-// Valuer is the interface that wraps the ContextKey method.
-type Valuer interface {
-	// GetContextKey returns the key of context value without receiver.
+// ContextValuer is the interface that wraps the ContextKey method.
+type ContextValuer interface {
+	// GetContextKey returns the key of context value. It will be called by with a zero value of the context value.
+	//
+	// Example:
+	//
+	//	type MyContextValue struct{}
+	//
+	//	func (*MyContextValue) GetContextKey() string {
+	//		return "my_context_value"
+	//	}
+	//
+	//	func main() {
+	//		var zero *MyContextValue
+	//		println(zero.GetContextKey())
+	//	}
 	GetContextKey() string
 }
 
 // SetContextValue sets the context value to the context.
-func SetContextValue[C ValueSetter, V Valuer](ctx C, v V) {
-	ctx.Set(v.GetContextKey(), v)
+func SetContextValue[S ValueSetter, V ContextValuer](setter S, v V) {
+	setter.Set(v.GetContextKey(), v)
 }
