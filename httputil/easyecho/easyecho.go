@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/gopherd/core/types"
+	"github.com/gopherd/core/typing"
 
 	"github.com/gopherd/exp/httputil"
 )
@@ -40,7 +40,7 @@ func BindRequest[H ~func(C, T) error, C Context, T any](h H) func(C) error {
 	return func(ctx C) error {
 		var req T
 		if err := ctx.Bind(&req); err != nil {
-			ctx.JSON(http.StatusBadRequest, types.Object{"error": err})
+			ctx.JSON(http.StatusBadRequest, typing.Object{"error": err})
 			return nil
 		}
 		return h(ctx, req)
@@ -53,18 +53,18 @@ func WithValue[H ~func(C, T, V) error, C Context, T any, V httputil.ContextValue
 		var req T
 		if err := ctx.Bind(&req); err != nil {
 			slog.Warn("failed to bind request", "error", err, "path", ctx.Path())
-			return ctx.JSON(http.StatusBadRequest, types.Object{"error": err})
+			return ctx.JSON(http.StatusBadRequest, typing.Object{"error": err})
 		}
 		var zero V
 		x := ctx.Get(zero.GetContextKey())
 		if x == nil {
 			slog.Error("context value not found", "path", ctx.Path())
-			return ctx.JSON(http.StatusInternalServerError, types.Object{"error": "context value not found"})
+			return ctx.JSON(http.StatusInternalServerError, typing.Object{"error": "context value not found"})
 		}
 		v, ok := x.(V)
 		if !ok {
 			slog.Error("unexpected type of context value", "path", ctx.Path())
-			return ctx.JSON(http.StatusInternalServerError, types.Object{"error": "unexpected type of context value"})
+			return ctx.JSON(http.StatusInternalServerError, typing.Object{"error": "unexpected type of context value"})
 		} else {
 			return h(ctx, req, v)
 		}

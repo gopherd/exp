@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/gopherd/core/types"
+	"github.com/gopherd/core/typing"
 	"github.com/gopherd/exp/spawn"
 )
 
@@ -18,7 +18,7 @@ type ClientOptions struct {
 	// Name is the namer of the scope: snake_case, camel_case, pascal_case, kebab_case or empty.
 	Namer string
 	// RefreshInterval is the interval to refresh the configuration.
-	RefreshInterval types.Duration
+	RefreshInterval typing.Duration
 }
 
 // Client is the configuration client.
